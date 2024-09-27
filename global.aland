@@ -1,0 +1,17 @@
+readInteger () : int;
+readByte () : byte; 
+readChar() : byte;
+readString(int, reference byte []) : proc;  
+
+writeInteger (int) : proc;
+writeChar (byte) : proc;
+writeString (reference byte []) : proc;
+
+strlen (reference byte []) : int;
+strcmp (reference byte [], reference byte []) : int; 
+strcpy (reference byte [], reference byte []) : proc; 
+strcat (reference byte [], reference byte []) : proc; 
+
+shrink (int) : byte; 
+extend (byte) : int; 
+

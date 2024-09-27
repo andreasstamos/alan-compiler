@@ -1,0 +1,15 @@
+main () : proc
+bb: byte [2];
+y: int;
+	testttt (aa: reference byte [] ) : int
+	{
+		aa[0] = 'b';
+		return 1;
+	}
+{
+	bb[0] = 'a';
+	bb[1] = '\0';
+	y = testttt(bb);
+	writeString(bb);
+}
+

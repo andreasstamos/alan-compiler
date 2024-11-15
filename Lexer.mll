@@ -112,11 +112,19 @@ and comments level = parse
     }
     | newline               { incr_linenum lexbuf; comments level lexbuf }
     | _ { comments level lexbuf }
-    | eof { Printf.eprintf "comments are not closed\n";  T_eof }
+    | eof { Printf.eprintf "the program file ends and a comment is not closed.\n"; exit 1; }
 
 and strlex = parse
         | '"'                           { }
         | "\\x" (hex hex as code)       { Buffer.add_char string_buf (Char.chr (int_of_string ("0x" ^ code))); strlex lexbuf }
         | '\\' (_ as c)                 { Buffer.add_char string_buf (esc_char c); strlex lexbuf }
-        | _ as c                        { Buffer.add_char string_buf c; strlex lexbuf }
+        | [^'\r' '\n'] as c             { Buffer.add_char string_buf c; strlex lexbuf }
+        | ['\r' '\n']                   { Printf.eprintf "invalid newline character inside string literal at the character %d of the line %d.\n"
+                                          (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol) lexbuf.lex_curr_p.pos_lnum;
+                                          exit 1; }
+        | eof                           { Printf.eprintf "the program file ends and a string literal is not closed.\n";
+                                          exit 1; }
+        |  _ as chr                     { Printf.eprintf "invalid character: '%c' (ascii: %d) at the character %d of the line %d.\n"
+                                          chr (Char.code chr) (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol) lexbuf.lex_curr_p.pos_lnum;
+                                          exit 1; }
 

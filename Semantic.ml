@@ -158,6 +158,9 @@ and semStmt env (stmt: Ast.stmt) : (unit, string) result =
                                 let* _ = (fun _ -> match t1 with
                                         | Array _ -> Result.Error ("Assignment on variable with array type: " ^ ShowAst.show_ttype t1 ^ " .")
                                         | _ -> Result.Ok () ) () in
+                                let* _ = (fun _ -> match t1 with
+                                        | Func _ -> Result.Error ("Assignment on variable with function type.")
+                                        | _ -> Result.Ok () ) () in
                                 checkEq t1 t2
                 | FuncCall_s funCall ->
                                 let* t = semFuncCall funCall env in
@@ -200,8 +203,12 @@ and semFuncCall func_call env =
   | Some (Func (param_types, return_type)) ->
     if List.length param_types = List.length func_call.params then
       let* _ = fold_result (fun _ (param_type, param) ->
-                let* t = semExpr env param in
-                checkEq t param_type)
+                match param_type with
+                  | Ref _ ->
+                     (match param with
+                       | LValue_e _ -> Result.Ok ()
+                       | _ -> Result.Error ("Function call: " ^ func_call.id ^ " was called with a non-referencable expression"))
+                  | _ -> let* t = semExpr env param in checkEq t param_type)
         (List.combine param_types func_call.params) () in
       Result.Ok return_type
     else
